@@ -5,12 +5,9 @@ WELCOME = "\n\nWelcome to the library!\n\nChoose from the following options\n" \
           "1) Add new book\n2) Print current database content in ascending" \
           "order by publishing year\nQ) Exit the program\n"
 
-
-def add_book(db):
-    database = [tuple(map(str, i.split('|'))) for i in db]
-    print("EXISTING DATABSE:")
-    print(database)
-
+def add_book(db_file):
+    with open(db_file, "r") as f:
+        database = [tuple(map(str, i.strip('\n').split('|'))) for i in f]
     print("Book's name?")
     book = input()
     print("Writer's name?")
@@ -20,33 +17,38 @@ def add_book(db):
     print("Publising year?")
     year = input()
     print(HEADER)
-    entry = (book, writer, isbn, year)
-    entry_str = book + "|" + writer + "|" + isbn +  "|" + year
-    print(entry_str)
-
+    print(book + "|" + writer + "|" + isbn +  "|" + year)
     print("Do you want to udpdate the database? (yes / no)")
     update = input()
     if update == "yes":
-        database.append(entry)
-        database.sort(key=lambda entry: (entry[0], entry[3]))
-        print(database)
+        database.append((book, writer, isbn, year))
+        update_database(db_file, database)
     else:
-        return
+        ui(db_file)
 
-def ui(db):
+def update_database(db_file, database):
+    with open(db_file, "w") as f:
+        database.sort(key=lambda entry: (entry[0].lower(), entry[3]))
+        for entry in database:
+            f.write(entry[0] + "|" + entry[1] + "|" + entry[2] + "|" + entry[3] + "\n")
+    print("\n***DATABASE UPDATED***\n")
+    read_file(db_file)
+
+def read_file(db_file):
+    with open(db_file, "r") as f:
+        print(f.read())
+
+def ui(db_file):
     print(WELCOME)
     user_input = input()
     if user_input == "1":
-        add_book(db)
-    else:
-        print("WRONG INPUT" + user_input)
-
+        add_book(db_file)
+    elif user_input == "2":
+        read_file(db_file)
+    
 def main():
-    db = sys.argv[1]
-    with open(db) as database_file:
-        ui(database_file)
-
-    #database_file.close()
+    db_file = sys.argv[1]
+    ui(db_file)
 
 if __name__ == "__main__":
     main()
